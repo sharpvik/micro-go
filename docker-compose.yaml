@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  srv:
+    container_name: micro_srv
+    build: .
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+
+  db:
+    container_name: micro_db
+    image: postgres:13-alpine
+    env_file:
+      - db.env

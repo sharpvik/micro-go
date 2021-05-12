@@ -1,0 +1,12 @@
+{
+    "database": {
+        "host": "micro_db",
+        "port": 5432,
+        "name": "micro_db",
+        "user": "admin",
+        "password": "password"
+    },
+    "server": {
+        "address": "0.0.0.0:8000"
+    }
+}
