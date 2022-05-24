@@ -1,8 +1,8 @@
 version: "3"
 
 services:
-  srv:
-    container_name: micro_srv
+  gw:
+    container_name: micro_gw
     build: .
     ports:
       - 8000:8000

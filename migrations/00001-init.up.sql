@@ -1,1 +1,1 @@
-create table if not exists example (id serial primary key);
+create table if not exists example (id serial primary key, names text);

@@ -9,8 +9,8 @@ import (
 )
 
 func TestSomething(t *testing.T) {
-	handler := newMainHandler()
-	assert.Equal(t, http.StatusOK, Response(t, Get(t, "/"), handler).StatusCode)
+	e := Runtime(nil).Echo()
+	assert.Equal(t, http.StatusOK, Response(t, Get(t, "/"), e).StatusCode)
 }
 
 func Response(t *testing.T, r *http.Request, h http.Handler) *http.Response {

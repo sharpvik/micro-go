@@ -2,48 +2,47 @@ package configs
 
 import (
 	_ "embed"
-	"encoding/json"
 	"io"
 	"os"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/sharpvik/log-go/v2"
 )
 
-//go:embed default.json
+//go:embed default.yml
 var defaultConfigFile []byte
 
-// Config contains configuration information for the whole service.
 type Config struct {
-	Database *Database `json:"database"`
-	Server   *Server   `json:"server"`
+	Database *Database
+	Server   *Server
 }
 
 type Database struct {
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	Name     string `json:"name"`
-	User     string `json:"user"`
-	Password string `json:"password"`
+	Host     string
+	Port     int
+	Name     string
+	User     string
+	Password string
 }
 
 type Server struct {
-	Address string `json:"address"`
+	Address string
 }
 
-// MustInit attempts to initialise Config and panics in case of failure.
 func MustInit() (config *Config) {
 	log.Debug("reading config ...")
 	defer log.Debug("config successfull")
-	flags := parseFlags()
-	if flags.ConfigPath == "" {
+	flags := ParseFlags()
+	if *flags.ConfigPath == "" {
 		return defaultConfig()
 	}
-	return customConfig(os.Open(flags.ConfigPath))
+	return customConfig(os.Open(*flags.ConfigPath))
 }
 
 func defaultConfig() (config *Config) {
 	config = new(Config)
-	if err := json.Unmarshal(defaultConfigFile, config); err != nil {
+	if err := yaml.Unmarshal(defaultConfigFile, config); err != nil {
 		log.Fatal("failed to read default config file: %s", err)
 	}
 	return
@@ -51,7 +50,7 @@ func defaultConfig() (config *Config) {
 
 func customConfig(file io.Reader, err error) (config *Config) {
 	config = new(Config)
-	if err := json.NewDecoder(file).Decode(config); err != nil {
+	if err := yaml.NewDecoder(file).Decode(config); err != nil {
 		log.Fatal("failed to read default config file: %s", err)
 	}
 	return

@@ -1,14 +1,15 @@
 package configs
 
-import "flag"
+import "github.com/pborman/getopt/v2"
 
 type Flags struct {
-	ConfigPath string
+	ConfigPath *string
 }
 
-func parseFlags() (fs *Flags) {
-	fs = new(Flags)
-	flag.StringVar(&fs.ConfigPath, "config", "", "specify custom config path")
-	flag.Parse()
+func ParseFlags() (fs *Flags) {
+	fs = &Flags{
+		ConfigPath: getopt.StringLong("config", 'c', "", "Specify custom config path"),
+	}
+	getopt.ParseV2()
 	return
 }

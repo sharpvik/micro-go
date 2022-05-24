@@ -1,7 +1,7 @@
 package database
 
 import (
-	"errors"
+	"embed"
 	"fmt"
 	"time"
 
@@ -13,70 +13,49 @@ import (
 	"github.com/sharpvik/micro-go/migrations"
 )
 
-// Database represents the generic database interface.
-type Database struct {
-	Conn   *sqlx.DB
-	Config *configs.Database
-}
-
-// MustInit attempts to connect to the database and panics in case of failure.
-func MustInit(config *configs.Database) (db *Database) {
-	var err error
-
+func MustInit(config *configs.Database) (db *sqlx.DB) {
 	details := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		config.Host, config.Port, config.User, config.Password, config.Name)
+	db = mustConnect(details)
+	up(db)
+	return
+}
 
-	dbi, err := connect(details, 10)
+func mustConnect(details string) (db *sqlx.DB) {
+	log.Debug("connecting to the database ...")
+
+	var err error
+	for i := 0; i < 10; i++ {
+		if db, err = sqlx.Connect("postgres", details); err == nil {
+			return
+		}
+		time.Sleep(time.Second)
+	}
+
 	if err != nil {
 		log.Fatal("failed to connect to the database")
 	}
-
-	db = &Database{
-		Conn:   dbi,
-		Config: config,
-	}
-
-	db.applyUpMigrations()
 	return
 }
 
-// connect attempts to connect to the database given a threshold of allowed
-// tries. As soon as there are no more tries left, it returns an error.
-func connect(details string, tries int) (dbi *sqlx.DB, err error) {
-	if tries < 1 {
-		err = errors.New("database connection attempts limit reached")
-		return
-	}
-	dbi, err = sqlx.Connect("postgres", details)
-	if err != nil {
-		log.Error(err)
-		log.Debug("retrying in a second ...")
-		time.Sleep(1 * time.Second)
-		return connect(details, tries-1)
-	}
-	return
-}
-
-// up only applies migrations ending with ".up.sql".
-func (db *Database) applyUpMigrations() {
-	migrations, err := migrations.FilterUpMigrations()
+func up(db *sqlx.DB) {
+	files, err := migrations.Up.ReadDir(".")
 	if err != nil {
 		log.Fatalf("failed to list up migrations: %s", err)
 		return
 	}
-
 	log.Debug("applying migrations ...")
-	for _, file := range migrations {
-		if err := readAndApply(db.Conn, file.Name()); err != nil {
+	for _, file := range files {
+		if err := readAndApply(db, migrations.Up, file.Name()); err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-func readAndApply(conn *sqlx.DB, path string) (err error) {
+func readAndApply(conn *sqlx.DB, fs embed.FS, path string) (err error) {
 	log.Debug(path)
-	migration, err := migrations.ReadFile(path)
+	migration, err := fs.ReadFile(path)
 	if err != nil {
 		return
 	}
