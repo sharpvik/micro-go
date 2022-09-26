@@ -2,12 +2,10 @@ package configs
 
 import (
 	_ "embed"
-	"io"
+	"log"
 	"os"
 
 	"gopkg.in/yaml.v3"
-
-	"github.com/sharpvik/log-go/v2"
 )
 
 //go:embed default.yml
@@ -31,27 +29,32 @@ type Server struct {
 }
 
 func MustInit() (config *Config) {
-	log.Debug("reading config ...")
-	defer log.Debug("config successfull")
+	log.Print("reading config ...")
 	flags := ParseFlags()
 	if *flags.ConfigPath == "" {
 		return defaultConfig()
 	}
-	return customConfig(os.Open(*flags.ConfigPath))
+	config = customConfig(*flags.ConfigPath)
+	log.Print("config successful")
+	return
 }
 
 func defaultConfig() (config *Config) {
 	config = new(Config)
 	if err := yaml.Unmarshal(defaultConfigFile, config); err != nil {
-		log.Fatal("failed to read default config file: %s", err)
+		log.Fatalln("failed to read default config file:", err)
 	}
 	return
 }
 
-func customConfig(file io.Reader, err error) (config *Config) {
+func customConfig(name string) (config *Config) {
+	file, err := os.Open(name)
+	if err != nil {
+		log.Fatalln("failed to open default config file:", err)
+	}
 	config = new(Config)
 	if err := yaml.NewDecoder(file).Decode(config); err != nil {
-		log.Fatal("failed to read default config file: %s", err)
+		log.Fatalln("failed to read default config file:", err)
 	}
 	return
 }

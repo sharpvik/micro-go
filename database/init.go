@@ -3,11 +3,11 @@ package database
 import (
 	"embed"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // the DB driver
-	"github.com/sharpvik/log-go/v2"
 
 	"github.com/sharpvik/micro-go/configs"
 	"github.com/sharpvik/micro-go/migrations"
@@ -23,7 +23,7 @@ func MustInit(config *configs.Database) (db *sqlx.DB) {
 }
 
 func mustConnect(details string) (db *sqlx.DB) {
-	log.Debug("connecting to the database ...")
+	log.Print("connecting to the database ...")
 
 	var err error
 	for i := 0; i < 10; i++ {
@@ -34,7 +34,7 @@ func mustConnect(details string) (db *sqlx.DB) {
 	}
 
 	if err != nil {
-		log.Fatal("failed to connect to the database")
+		log.Fatalln("failed to connect to the database:", err)
 	}
 	return
 }
@@ -42,10 +42,10 @@ func mustConnect(details string) (db *sqlx.DB) {
 func up(db *sqlx.DB) {
 	files, err := migrations.Up.ReadDir(".")
 	if err != nil {
-		log.Fatalf("failed to list up migrations: %s", err)
+		log.Fatalln("failed to list up migrations:", err)
 		return
 	}
-	log.Debug("applying migrations ...")
+	log.Print("applying migrations ...")
 	for _, file := range files {
 		if err := readAndApply(db, migrations.Up, file.Name()); err != nil {
 			log.Fatal(err)
@@ -54,7 +54,7 @@ func up(db *sqlx.DB) {
 }
 
 func readAndApply(conn *sqlx.DB, fs embed.FS, path string) (err error) {
-	log.Debug(path)
+	log.Print(path)
 	migration, err := fs.ReadFile(path)
 	if err != nil {
 		return
