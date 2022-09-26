@@ -43,7 +43,6 @@ func up(db *sqlx.DB) {
 	files, err := migrations.Up.ReadDir(".")
 	if err != nil {
 		log.Fatalln("failed to list up migrations:", err)
-		return
 	}
 	log.Print("applying migrations ...")
 	for _, file := range files {

@@ -5,12 +5,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/sharpvik/micro-go/database/names"
+	"github.com/sharpvik/micro-go/database/users"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSomething(t *testing.T) {
-	e := New(names.NewRepo(nil)).Server()
+	e := New(users.NewRepo(nil)).Server()
 	assert.Equal(t, http.StatusOK, response(t, get(t, "/ping"), e).StatusCode)
 }
 

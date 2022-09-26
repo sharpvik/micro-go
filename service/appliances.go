@@ -1,5 +1,5 @@
 package service
 
-type NamesRepo interface {
-	Add(name string) error
+type Users interface {
+	Add(username, password string) error
 }

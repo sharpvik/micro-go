@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -9,36 +10,40 @@ import (
 )
 
 type Service struct {
-	names NamesRepo
+	users Users
 }
 
-func New(names NamesRepo) *Service {
+func New(names Users) *Service {
 	return &Service{
-		names: names,
+		users: names,
 	}
 }
 
-func (rt *Service) Server() (e *echo.Echo) {
+func (s *Service) Server() (e *echo.Echo) {
 	e = echo.New()
 
 	// Middleware.
 	e.Use(middleware.Recover(), middleware.Logger())
 
 	// Endpoints.
-	e.Any("/ping", rt.pong)
-	e.POST("/:name", rt.remember)
+	e.Any("/ping", s.pong)
+	e.POST("/signup", s.remember)
 
 	return
 }
 
-func (rt *Service) pong(c echo.Context) error {
+func (s *Service) pong(c echo.Context) error {
 	return c.String(http.StatusOK, "pong")
 }
 
-func (rt *Service) remember(c echo.Context) error {
-	name := c.Param("name")
-	if err := rt.names.Add(name); err != nil {
-		return c.String(http.StatusInternalServerError, "failed to remember you")
+func (s *Service) remember(c echo.Context) (err error) {
+	var body SignUpRequest
+	if err = json.NewDecoder(c.Request().Body).Decode(&body); err != nil {
+		return c.String(http.StatusBadRequest,
+			fmt.Sprintln("failed to decode request:", err))
 	}
-	return c.String(http.StatusOK, fmt.Sprintln("hello,", name))
+	if err := s.users.Add(body.Username, body.Password); err != nil {
+		return c.String(http.StatusInternalServerError, "failed to sign you up")
+	}
+	return c.String(http.StatusOK, fmt.Sprintln("hello,", body.Username))
 }

@@ -1,1 +1,5 @@
-create table if not exists example (id serial primary key, names text);
+create table if not exists users (
+    id serial primary key,
+    username text unique not null,
+    passphrase bytea not null
+);
