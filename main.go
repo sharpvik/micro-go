@@ -5,7 +5,8 @@ import (
 
 	"github.com/sharpvik/micro-go/configs"
 	"github.com/sharpvik/micro-go/database"
-	"github.com/sharpvik/micro-go/server"
+	"github.com/sharpvik/micro-go/database/names"
+	"github.com/sharpvik/micro-go/service"
 )
 
 func main() {
@@ -13,7 +14,11 @@ func main() {
 	config := configs.MustInit()
 	db := database.MustInit(config.Database)
 	log.Print("init successful")
-	if err := server.Runtime(db).Echo().Start(config.Server.Address); err != nil {
+
+	names := names.NewRepo(db)
+	server := service.New(names).Server()
+
+	if err := server.Start(config.Server.Address); err != nil {
 		log.Println("server shutdown with error:", err)
 	} else {
 		log.Print("server stopped")

@@ -1,14 +1,14 @@
 FROM golang:1.19-buster
 
-# General setup
+# General setup.
 EXPOSE 8000
 
-# File structure
+# File structure.
 RUN mkdir /app
 WORKDIR /app
 COPY . .
 
-# Compile
+# Compile.
 RUN go install
 
 CMD [ "micro-go" ]

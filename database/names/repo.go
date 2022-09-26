@@ -10,7 +10,7 @@ func NewRepo(db *sqlx.DB) Repo {
 	return Repo{db}
 }
 
-func (repo Repo) Add(name string) (err error) {
-	_, err = repo.Exec(`INSERT INTO example (names) VALUES ($1)`, name)
+func (r Repo) Add(name string) (err error) {
+	_, err = r.Exec(`INSERT INTO example (names) VALUES ($1)`, name)
 	return
 }
